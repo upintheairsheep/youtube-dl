@@ -2245,7 +2245,8 @@ def encodeFilename(s, for_subprocess=False):
     if sys.platform.startswith('java'):
         return s
 
-    return s.encode(get_subprocess_encoding(), 'ignore')
+    # If encoding is (eg) 'ascii', use escape sequences (allows round-trip test)
+    return s.encode(get_subprocess_encoding(), 'backslashreplace')
 
 
 def decodeFilename(b, for_subprocess=False):
@@ -3354,8 +3355,7 @@ class locked_file(object):
 
 
 def get_filesystem_encoding():
-    encoding = sys.getfilesystemencoding()
-    return encoding if encoding is not None else 'utf-8'
+    return sys.getfilesystemencoding() or sys.getdefaultencoding() or 'utf-8'
 
 
 def shell_quote(args):
@@ -3365,6 +3365,8 @@ def shell_quote(args):
         if isinstance(a, bytes):
             # We may get a filename encoded with 'encodeFilename'
             a = a.decode(encoding)
+            if not encoding.lower().startswith('ut'):
+                a = a.encode('utf-8').decode('unicode-escape')
         quoted_args.append(compat_shlex_quote(a))
     return ' '.join(quoted_args)
 
@@ -4610,7 +4612,7 @@ def dfxp2srt(dfxp_data):
             continue
         default_style.update(style)
 
-    for para, index in zip(paras, itertools.count(1)):
+    for index, para in enumerate(paras, 1):
         begin_time = parse_dfxp_time_expr(para.attrib.get('begin'))
         end_time = parse_dfxp_time_expr(para.attrib.get('end'))
         dur = parse_dfxp_time_expr(para.attrib.get('dur'))
