@@ -4288,7 +4288,10 @@ def parse_codecs(codecs_str):
 def urlhandle_detect_ext(url_handle):
     getheader = url_handle.headers.get
 
-    cd = getheader('Content-Disposition')
+    def encode_compat_str_or_none(x, encoding='iso-8859-1', errors='ignore'):
+        return encode_compat_str(x, encoding=encoding, errors=errors) if x else None
+
+    cd = encode_compat_str_or_none(getheader('Content-Disposition'))
     if cd:
         m = re.match(r'attachment;\s*filename="(?P<filename>[^"]+)"', cd)
         if m:
@@ -4296,7 +4299,8 @@ def urlhandle_detect_ext(url_handle):
             if e:
                 return e
 
-    return mimetype2ext(getheader('Content-Type'))
+    ct = encode_compat_str_or_none(getheader('Content-Type'))
+    return mimetype2ext(ct)
 
 
 def encode_data_uri(data, mime_type):

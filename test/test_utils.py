@@ -105,6 +105,7 @@ from youtube_dl.utils import (
     cli_valueless_option,
     cli_bool_option,
     parse_codecs,
+    urlhandle_detect_ext,
 )
 from youtube_dl.compat import (
     compat_chr,
@@ -1474,6 +1475,30 @@ Line 1
     def test_clean_podcast_url(self):
         self.assertEqual(clean_podcast_url('https://www.podtrac.com/pts/redirect.mp3/chtbl.com/track/5899E/traffic.megaphone.fm/HSW7835899191.mp3'), 'https://traffic.megaphone.fm/HSW7835899191.mp3')
         self.assertEqual(clean_podcast_url('https://play.podtrac.com/npr-344098539/edge1.pod.npr.org/anon.npr-podcasts/podcast/npr/waitwait/2020/10/20201003_waitwait_wwdtmpodcast201003-015621a5-f035-4eca-a9a1-7c118d90bc3c.mp3'), 'https://edge1.pod.npr.org/anon.npr-podcasts/podcast/npr/waitwait/2020/10/20201003_waitwait_wwdtmpodcast201003-015621a5-f035-4eca-a9a1-7c118d90bc3c.mp3')
+
+    def test_urlhandle_detect_ext(self):
+
+        class UrlHandle(object):
+            _info = {}
+
+            def __init__(self, info):
+                self._info = info
+
+            @property
+            def headers(self):
+                return self._info
+
+        # header with non-ASCII character and contradictory Content-Type
+        urlh = UrlHandle({
+            'Content-Disposition': b'attachment; filename="Epis\xf3dio contains non-ASCI ISO 8859-1 character.mp3"',
+            'Content-Type': b'audio/aac',
+        })
+        self.assertEqual(urlhandle_detect_ext(urlh), 'mp3')
+        # header with no Content-Disposition
+        urlh = UrlHandle({
+            'Content-Type': b'audio/mp3',
+        })
+        self.assertEqual(urlhandle_detect_ext(urlh), 'mp3')
 
 
 if __name__ == '__main__':
