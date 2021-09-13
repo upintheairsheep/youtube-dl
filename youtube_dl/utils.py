@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding: utf-8
 
 from __future__ import unicode_literals
@@ -1717,8 +1716,6 @@ ACCENT_CHARS = dict(zip('ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖŐØŒÙ�
                                         'aaaaaa', ['ae'], 'ceeeeiiiionooooooo', ['oe'], 'uuuuuy', ['th'], 'y')))
 
 DATE_FORMATS = (
-    '%d %B %Y',
-    '%d %b %Y',
     '%B %d %Y',
     '%B %dst %Y',
     '%B %dnd %Y',
@@ -1763,6 +1760,11 @@ DATE_FORMATS_DAY_FIRST.extend([
     '%d/%m/%Y',
     '%d/%m/%y',
     '%d/%m/%Y %H:%M:%S',
+    '%d %B %Y',
+    '%d %b %Y',
+    '%d-%b-%Y',
+    '%H:%M %d-%b-%Y',
+    '%H:%M:%S %d-%b-%Y',
 ])
 
 DATE_FORMATS_MONTH_FIRST = list(DATE_FORMATS)
@@ -1772,6 +1774,11 @@ DATE_FORMATS_MONTH_FIRST.extend([
     '%m/%d/%Y',
     '%m/%d/%y',
     '%m/%d/%Y %H:%M:%S',
+    '%B %d %Y',
+    '%b %d %Y',
+    '%b-%d-%Y',
+    '%H:%M %b-%d-%Y',
+    '%H:%M:%S %b-%d-%Y',
 ])
 
 PACKED_CODES_RE = r"}\('(.+)',(\d+),(\d+),'([^']+)'\.split\('\|'\)"
@@ -2939,7 +2946,16 @@ class YoutubeDLRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
 
 def extract_timezone(date_str):
     m = re.search(
-        r'^.{8,}?(?P<tz>Z$| ?(?P<sign>\+|-)(?P<hours>[0-9]{2}):?(?P<minutes>[0-9]{2})$)',
+        r'''(?x)
+            ^.{8,}?                                              # >=8 char non-TZ prefix, if present
+            (?P<tz>Z|                                            # just the UTC Z, or
+                (?:(?<=.\b\d{4}|\b\d{2}:\d\d)|                   # preceded by 4 digits or hh:mm or
+                   (?<!.\b[a-zA-Z]{3}|[a-zA-Z]{4}|..\b\d\d))     # not preceded by 3 alpha word or >= 4 alpha or 2 digits
+                   [ ]?                                          # optional space
+                (?P<sign>\+|-)                                   # +/-
+                (?P<hours>[0-9]{2}):?(?P<minutes>[0-9]{2})       # hh[:]mm
+            $)
+        ''',
         date_str)
     if not m:
         timezone = datetime.timedelta()
