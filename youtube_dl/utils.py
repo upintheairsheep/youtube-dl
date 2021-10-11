@@ -2781,7 +2781,8 @@ class YoutubeDLCookieJar(compat_cookiejar.MozillaCookieJar):
             if cookie.expires is None:
                 cookie.expires = 0
 
-        with io.open(filename, 'w', encoding='utf-8') as f:
+        with io.open(filename, 'r+', encoding='utf-8') as f:
+            assert 0 == f.seek(0)
             f.write(self._HEADER)
             now = time.time()
             for cookie in self:
@@ -2813,6 +2814,7 @@ class YoutubeDLCookieJar(compat_cookiejar.MozillaCookieJar):
                 f.write(
                     '\t'.join([cookie.domain, initial_dot, cookie.path,
                                secure, expires, name, value]) + '\n')
+                assert f.tell() == f.truncate()
 
     def load(self, filename=None, ignore_discard=False, ignore_expires=False):
         """Load cookies from a file."""
