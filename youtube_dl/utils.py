@@ -3694,16 +3694,11 @@ class PUTRequest(compat_urllib_request.Request):
 
 
 def int_or_none(v, scale=1, default=None, get_attr=None, invscale=1):
-    if get_attr:
-        if v is not None:
-            v = getattr(v, get_attr, None)
-    if v == '':
-        v = None
-    if v is None:
-        return default
+    if get_attr and v is not None:
+        v = getattr(v, get_attr, None)
     try:
         return int(v) * invscale // scale
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, OverflowError):
         return default
 
 
