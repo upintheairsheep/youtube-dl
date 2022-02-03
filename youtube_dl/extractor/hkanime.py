@@ -90,7 +90,8 @@ class HKAnimeBaseInfoExtractor(InfoExtractor):
         for video in result['formats']:
             video['http_headers'] = {
                 'User-Agent': std_headers['User-Agent'],
-                'Range': 'bytes=0-'
+                'Range': 'bytes=0-',
+                'Referer': 'https://play.hkanime.com/'
             }
 
         return result
